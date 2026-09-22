@@ -17,6 +17,7 @@ import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.annotation.ColorRes
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
@@ -36,23 +37,17 @@ class MainActivity : AppCompatActivity() {
 
     override fun attachBaseContext(newBase: Context) {
         val storedSettings = SettingsStore(newBase)
-        val theme = storedSettings.getTheme()
         val locale = Locale.forLanguageTag(storedSettings.getLanguage())
         val configuration = Configuration(newBase.resources.configuration)
         configuration.setLocale(locale)
         configuration.setLayoutDirection(locale)
 
-        val nightMode = when (theme) {
-            AppTheme.LIGHT -> Configuration.UI_MODE_NIGHT_NO
-            AppTheme.DARK -> Configuration.UI_MODE_NIGHT_YES
-        }
-        configuration.uiMode =
-            (configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK.inv()) or nightMode
-
         super.attachBaseContext(newBase.createConfigurationContext(configuration))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val storedTheme = SettingsStore(this).getTheme()
+        AppCompatDelegate.setDefaultNightMode(appCompatNightMode(storedTheme))
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
@@ -104,7 +99,14 @@ class MainActivity : AppCompatActivity() {
             AppTheme.DARK -> AppTheme.LIGHT
         }
         settingsStore.setTheme(next)
-        recreate()
+        AppCompatDelegate.setDefaultNightMode(appCompatNightMode(next))
+    }
+
+    private fun appCompatNightMode(theme: AppTheme): Int {
+        return when (theme) {
+            AppTheme.LIGHT -> AppCompatDelegate.MODE_NIGHT_NO
+            AppTheme.DARK -> AppCompatDelegate.MODE_NIGHT_YES
+        }
     }
 
     private fun renderThemeToggle() {
@@ -166,7 +168,8 @@ class MainActivity : AppCompatActivity() {
 
         val metadata = repository.folderMetadata(path)
         titleView.text = metadata.title
-        backButton.visibility = if (path == repository.rootPath) View.INVISIBLE else View.VISIBLE
+        titleView.visibility = View.VISIBLE
+        backButton.visibility = if (path == repository.rootPath) View.GONE else View.VISIBLE
 
         documentView.visibility = View.GONE
         navigationScroll.visibility = View.VISIBLE
@@ -193,6 +196,7 @@ class MainActivity : AppCompatActivity() {
 
         documentOpened = true
         titleView.text = metadata.title
+        titleView.visibility = View.GONE
         backButton.visibility = View.VISIBLE
         navigationScroll.visibility = View.GONE
         documentView.visibility = View.VISIBLE
