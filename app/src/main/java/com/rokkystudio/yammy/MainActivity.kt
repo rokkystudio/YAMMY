@@ -42,6 +42,13 @@ class MainActivity : AppCompatActivity() {
         configuration.setLocale(locale)
         configuration.setLayoutDirection(locale)
 
+        val nightMode = when (storedSettings.getTheme()) {
+            AppTheme.LIGHT -> Configuration.UI_MODE_NIGHT_NO
+            AppTheme.DARK -> Configuration.UI_MODE_NIGHT_YES
+        }
+        configuration.uiMode =
+            (configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK.inv()) or nightMode
+
         super.attachBaseContext(newBase.createConfigurationContext(configuration))
     }
 
