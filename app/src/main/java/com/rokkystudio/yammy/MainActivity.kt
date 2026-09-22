@@ -2,6 +2,7 @@ package com.rokkystudio.yammy
 
 import android.content.Context
 import android.content.res.Configuration
+import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.util.TypedValue
@@ -15,7 +16,6 @@ import android.widget.PopupMenu
 import android.widget.ScrollView
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
-import androidx.annotation.ColorRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import java.util.Locale
@@ -69,6 +69,8 @@ class MainActivity : AppCompatActivity() {
         themeToggleButton = findViewById(R.id.themeToggleButton)
         languageFlag = findViewById(R.id.languageFlag)
 
+        applyExplicitTheme()
+
         documentView.settings.javaScriptEnabled = false
         documentView.settings.allowFileAccess = false
         documentView.settings.allowContentAccess = false
@@ -76,7 +78,7 @@ class MainActivity : AppCompatActivity() {
         documentView.settings.setSupportZoom(true)
         documentView.settings.builtInZoomControls = true
         documentView.settings.displayZoomControls = false
-        documentView.setBackgroundColor(getColor(R.color.background))
+        documentView.setBackgroundColor(dynamicBackgroundColor())
 
         backButton.setOnClickListener { navigateBack() }
         themeToggleButton.setOnClickListener { toggleTheme() }
@@ -233,7 +235,7 @@ class MainActivity : AppCompatActivity() {
     private fun createIntro(summary: String): TextView {
         return TextView(this).apply {
             text = summary
-            setTextColor(getColor(R.color.text_secondary))
+            setTextColor(dynamicTextSecondary())
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
             setLineSpacing(0f, 1.2f)
             setPadding(dp(4), dp(2), dp(4), dp(16))
@@ -246,9 +248,9 @@ class MainActivity : AppCompatActivity() {
             gravity = Gravity.CENTER_VERTICAL
             setPadding(dp(14), dp(14), dp(14), dp(14))
             background = GradientDrawable().apply {
-                setColor(getColor(if (node.isDirectory) R.color.surface else R.color.surface_raised))
+                setColor(dynamicCardColor(node.isDirectory))
                 cornerRadius = dp(12).toFloat()
-                setStroke(dp(1), getColor(R.color.border))
+                setStroke(dp(1), dynamicBorderColor())
             }
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -283,7 +285,7 @@ class MainActivity : AppCompatActivity() {
         textColumn.addView(
             TextView(this).apply {
                 text = node.title
-                setTextColor(getColor(R.color.text_primary))
+                setTextColor(dynamicTextPrimary())
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, 17f)
                 setTypeface(typeface, android.graphics.Typeface.BOLD)
             }
@@ -293,7 +295,7 @@ class MainActivity : AppCompatActivity() {
             textColumn.addView(
                 TextView(this).apply {
                     text = node.summary
-                    setTextColor(getColor(R.color.text_secondary))
+                    setTextColor(dynamicTextSecondary())
                     setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
                     setPadding(0, dp(4), 0, 0)
                 }
@@ -317,17 +319,72 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun markdownPalette(): MarkdownPalette {
-        return MarkdownPalette(
-            background = colorHex(R.color.background),
-            surface = colorHex(R.color.surface_raised),
-            header = colorHex(R.color.surface),
-            border = colorHex(R.color.border),
-            textPrimary = colorHex(R.color.text_primary)
-        )
+        return when (settingsStore.getTheme()) {
+            AppTheme.LIGHT -> MarkdownPalette(
+                background = "#FFFFFF",
+                surface = "#F0F0F0",
+                header = "#F0F0F0",
+                border = "#E2E4E8",
+                textPrimary = "#191A1C"
+            )
+            AppTheme.DARK -> MarkdownPalette(
+                background = "#111418",
+                surface = "#1D232A",
+                header = "#222732",
+                border = "#2A323B",
+                textPrimary = "#F2F5F8"
+            )
+        }
     }
 
-    private fun colorHex(@ColorRes color: Int): String {
-        return String.format("#%06X", 0xFFFFFF and getColor(color))
+    private fun applyExplicitTheme() {
+        val isLight = settingsStore.getTheme() == AppTheme.LIGHT
+        val background = dynamicBackgroundColor()
+        val surface = if (isLight) Color.rgb(240, 240, 240) else Color.rgb(37, 45, 54)
+
+        findViewById<View>(R.id.rootLayout).setBackgroundColor(background)
+        findViewById<View>(R.id.topBar).setBackgroundColor(surface)
+        findViewById<View>(R.id.contentHeader).setBackgroundColor(background)
+        findViewById<TextView>(R.id.appTitle).setTextColor(dynamicTextPrimary())
+        findViewById<TextView>(R.id.appSubtitle).setTextColor(dynamicTextSecondary())
+        titleView.setTextColor(dynamicTextPrimary())
+        navigationScroll.setBackgroundColor(background)
+        documentView.setBackgroundColor(background)
+    }
+
+    private fun dynamicBackgroundColor(): Int {
+        return when (settingsStore.getTheme()) {
+            AppTheme.LIGHT -> Color.WHITE
+            AppTheme.DARK -> Color.rgb(17, 20, 24)
+        }
+    }
+
+    private fun dynamicCardColor(isDirectory: Boolean): Int {
+        return when (settingsStore.getTheme()) {
+            AppTheme.LIGHT -> Color.rgb(240, 240, 240)
+            AppTheme.DARK -> if (isDirectory) Color.rgb(34, 39, 50) else Color.rgb(29, 35, 42)
+        }
+    }
+
+    private fun dynamicBorderColor(): Int {
+        return when (settingsStore.getTheme()) {
+            AppTheme.LIGHT -> Color.rgb(226, 228, 232)
+            AppTheme.DARK -> Color.rgb(42, 50, 59)
+        }
+    }
+
+    private fun dynamicTextPrimary(): Int {
+        return when (settingsStore.getTheme()) {
+            AppTheme.LIGHT -> Color.rgb(25, 26, 28)
+            AppTheme.DARK -> Color.rgb(242, 245, 248)
+        }
+    }
+
+    private fun dynamicTextSecondary(): Int {
+        return when (settingsStore.getTheme()) {
+            AppTheme.LIGHT -> Color.rgb(81, 82, 85)
+            AppTheme.DARK -> Color.rgb(174, 178, 182)
+        }
     }
 
     private fun dp(value: Int): Int {
