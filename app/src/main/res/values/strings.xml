@@ -1,3 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">YAMMY</string>
+    <string name="app_subtitle">Гликемический справочник</string>
+    <string name="theme_light">Светлая тема</string>
+    <string name="theme_dark">Тёмная тема</string>
+    <string name="language">Язык</string>
+    <string name="language_current">Язык: %1$s</string>
+    <string name="back">Назад</string>
 </resources>
