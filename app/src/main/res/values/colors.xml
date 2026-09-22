@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="background">#FFFFFFFF</color>
+    <color name="background">#FFE0E0E0</color>
     <color name="surface">#FFF0F0F0</color>
     <color name="surface_raised">#FFF0F0F0</color>
     <color name="title_bar">#FFF0F0F0</color>

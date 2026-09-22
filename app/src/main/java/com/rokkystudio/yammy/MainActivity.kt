@@ -321,7 +321,7 @@ class MainActivity : AppCompatActivity() {
     private fun markdownPalette(): MarkdownPalette {
         return when (settingsStore.getTheme()) {
             AppTheme.LIGHT -> MarkdownPalette(
-                background = "#FFFFFF",
+                background = "#E0E0E0",
                 surface = "#F0F0F0",
                 header = "#F0F0F0",
                 border = "#E2E4E8",
@@ -354,7 +354,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun dynamicBackgroundColor(): Int {
         return when (settingsStore.getTheme()) {
-            AppTheme.LIGHT -> Color.WHITE
+            AppTheme.LIGHT -> Color.rgb(224, 224, 224)
             AppTheme.DARK -> Color.rgb(17, 20, 24)
         }
     }
