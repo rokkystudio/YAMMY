@@ -16,11 +16,7 @@ import android.widget.ScrollView
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
-import com.rokkystudio.sharedapp.neoui.NeoLanguageDefaults
 import com.rokkystudio.sharedapp.neoui.NeoTopBarView
-import com.rokkystudio.sharedapp.neoui.NeoThemeDefaults
-import java.util.Locale
 
 /**
  * Displays the localized YAMMY content tree, renders Markdown articles and routes shared NeoUI theme and language controls.
@@ -40,25 +36,13 @@ class MainActivity : AppCompatActivity() {
     private var documentOpened = false
 
     override fun attachBaseContext(newBase: Context) {
-        val storedSettings = SettingsStore(newBase)
-        val locale = Locale.forLanguageTag(storedSettings.getLanguage())
         val configuration = Configuration(newBase.resources.configuration)
-        configuration.setLocale(locale)
-        configuration.setLayoutDirection(locale)
-
-        val nightMode = when (storedSettings.getTheme()) {
-            AppTheme.LIGHT -> Configuration.UI_MODE_NIGHT_NO
-            AppTheme.DARK -> Configuration.UI_MODE_NIGHT_YES
-        }
-        configuration.uiMode =
-            (configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK.inv()) or nightMode
-
+        SettingsStore(newBase).applyToConfiguration(configuration)
         super.attachBaseContext(newBase.createConfigurationContext(configuration))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        val storedTheme = SettingsStore(this).getTheme()
-        AppCompatDelegate.setDefaultNightMode(appCompatNightMode(storedTheme))
+        SettingsStore(this).applyAppCompatNightMode()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
@@ -111,52 +95,8 @@ class MainActivity : AppCompatActivity() {
             subtitle = getString(R.string.app_subtitle),
             iconResId = R.mipmap.ic_launcher
         )
-        topBar.setThemeOptions(
-            options = NeoThemeDefaults.dayNight(),
-            selected = themeSelection(settingsStore.getTheme())
-        ) { selected ->
-            val next = themeFromSelection(selected)
-            if (next != settingsStore.getTheme()) {
-                settingsStore.setTheme(next)
-                AppCompatDelegate.setDefaultNightMode(appCompatNightMode(next))
-            }
-        }
-        topBar.setLanguageOptions(
-            options = NeoLanguageDefaults.supportedLanguages(),
-            selected = settingsStore.getLanguage()
-        ) { language ->
-            if (language != repository.languageCode) {
-                settingsStore.setLanguage(language)
-                recreate()
-            }
-        }
-    }
-
-    /**
-     * Converts a stored application theme into the shared NeoUI theme option value.
-     */
-    private fun themeSelection(theme: AppTheme): String {
-        return when (theme) {
-            AppTheme.LIGHT -> NeoThemeDefaults.DAY
-            AppTheme.DARK -> NeoThemeDefaults.NIGHT
-        }
-    }
-
-    /**
-     * Converts a shared NeoUI theme option value into the application theme model.
-     */
-    private fun themeFromSelection(selection: String): AppTheme {
-        return when (selection) {
-            NeoThemeDefaults.DAY -> AppTheme.LIGHT
-            NeoThemeDefaults.NIGHT -> AppTheme.DARK
-            else -> settingsStore.getTheme()
-        }
-    }
-
-    private fun appCompatNightMode(theme: AppTheme): Int {
-        return when (theme) {
-            AppTheme.LIGHT -> AppCompatDelegate.MODE_NIGHT_NO
-            AppTheme.DARK -> AppCompatDelegate.MODE_NIGHT_YES
+        settingsStore.bindTopBarUi(topBar) {
+            recreate()
         }
     }
 

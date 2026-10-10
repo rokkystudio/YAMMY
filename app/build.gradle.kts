@@ -12,8 +12,8 @@ android {
         applicationId = "com.rokkystudio.yammy"
         minSdk = 24
         targetSdk = 37
-        versionCode = 11
-        versionName = "1.0.11"
+        versionCode = 13
+        versionName = "1.0.13"
     }
 
     buildTypes {
