@@ -23,5 +23,8 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "YAMMY"
+
+includeBuild("../SHARED-APP/geo")
+includeBuild("../SHARED-APP/neoui")
+
 include(":app")
- 

@@ -12,25 +12,29 @@ import android.webkit.WebView
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.PopupMenu
 import android.widget.ScrollView
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import com.rokkystudio.sharedapp.neoui.NeoLanguageDefaults
+import com.rokkystudio.sharedapp.neoui.NeoTopBarView
+import com.rokkystudio.sharedapp.neoui.NeoThemeDefaults
 import java.util.Locale
 
+/**
+ * Displays the localized YAMMY content tree, renders Markdown articles and routes shared NeoUI theme and language controls.
+ */
 class MainActivity : AppCompatActivity() {
 
     private lateinit var settingsStore: SettingsStore
     private lateinit var repository: ContentRepository
+    private lateinit var topBar: NeoTopBarView
     private lateinit var backButton: ImageButton
     private lateinit var titleView: TextView
     private lateinit var navigationScroll: ScrollView
     private lateinit var navigationContainer: LinearLayout
     private lateinit var documentView: WebView
-    private lateinit var themeToggleButton: ImageButton
-    private lateinit var languageFlag: ImageButton
 
     private var currentFolder = ""
     private var documentOpened = false
@@ -61,15 +65,15 @@ class MainActivity : AppCompatActivity() {
         settingsStore = SettingsStore(this)
         repository = ContentRepository(assets, settingsStore.getLanguage())
 
+        topBar = findViewById(R.id.topBar)
         backButton = findViewById(R.id.backButton)
         titleView = findViewById(R.id.titleView)
         navigationScroll = findViewById(R.id.navigationScroll)
         navigationContainer = findViewById(R.id.navigationContainer)
         documentView = findViewById(R.id.documentView)
-        themeToggleButton = findViewById(R.id.themeToggleButton)
-        languageFlag = findViewById(R.id.languageFlag)
 
         applyExplicitTheme()
+        configureTopBar()
 
         documentView.settings.javaScriptEnabled = false
         documentView.settings.allowFileAccess = false
@@ -81,8 +85,6 @@ class MainActivity : AppCompatActivity() {
         documentView.setBackgroundColor(dynamicBackgroundColor())
 
         backButton.setOnClickListener { navigateBack() }
-        themeToggleButton.setOnClickListener { toggleTheme() }
-        languageFlag.setOnClickListener { showLanguageMenu(it) }
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -90,8 +92,6 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        renderThemeToggle()
-        renderLanguageFlag()
         showFolder(repository.rootPath)
     }
 
@@ -102,13 +102,55 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
-    private fun toggleTheme() {
-        val next = when (settingsStore.getTheme()) {
-            AppTheme.LIGHT -> AppTheme.DARK
-            AppTheme.DARK -> AppTheme.LIGHT
+    /**
+     * Configures the shared top bar with YAMMY identity, app theme options and language options.
+     */
+    private fun configureTopBar() {
+        topBar.setAppInfo(
+            title = getString(R.string.app_name),
+            subtitle = getString(R.string.app_subtitle),
+            iconResId = R.mipmap.ic_launcher
+        )
+        topBar.setThemeOptions(
+            options = NeoThemeDefaults.dayNight(),
+            selected = themeSelection(settingsStore.getTheme())
+        ) { selected ->
+            val next = themeFromSelection(selected)
+            if (next != settingsStore.getTheme()) {
+                settingsStore.setTheme(next)
+                AppCompatDelegate.setDefaultNightMode(appCompatNightMode(next))
+            }
         }
-        settingsStore.setTheme(next)
-        AppCompatDelegate.setDefaultNightMode(appCompatNightMode(next))
+        topBar.setLanguageOptions(
+            options = NeoLanguageDefaults.supportedLanguages(),
+            selected = settingsStore.getLanguage()
+        ) { language ->
+            if (language != repository.languageCode) {
+                settingsStore.setLanguage(language)
+                recreate()
+            }
+        }
+    }
+
+    /**
+     * Converts a stored application theme into the shared NeoUI theme option value.
+     */
+    private fun themeSelection(theme: AppTheme): String {
+        return when (theme) {
+            AppTheme.LIGHT -> NeoThemeDefaults.DAY
+            AppTheme.DARK -> NeoThemeDefaults.NIGHT
+        }
+    }
+
+    /**
+     * Converts a shared NeoUI theme option value into the application theme model.
+     */
+    private fun themeFromSelection(selection: String): AppTheme {
+        return when (selection) {
+            NeoThemeDefaults.DAY -> AppTheme.LIGHT
+            NeoThemeDefaults.NIGHT -> AppTheme.DARK
+            else -> settingsStore.getTheme()
+        }
     }
 
     private fun appCompatNightMode(theme: AppTheme): Int {
@@ -116,59 +158,6 @@ class MainActivity : AppCompatActivity() {
             AppTheme.LIGHT -> AppCompatDelegate.MODE_NIGHT_NO
             AppTheme.DARK -> AppCompatDelegate.MODE_NIGHT_YES
         }
-    }
-
-    private fun renderThemeToggle() {
-        when (settingsStore.getTheme()) {
-            AppTheme.LIGHT -> {
-                themeToggleButton.setImageResource(R.drawable.theme_sun)
-                themeToggleButton.contentDescription = getString(R.string.theme_light)
-            }
-            AppTheme.DARK -> {
-                themeToggleButton.setImageResource(R.drawable.theme_moon)
-                themeToggleButton.contentDescription = getString(R.string.theme_dark)
-            }
-        }
-    }
-
-    private fun showLanguageMenu(anchor: View) {
-        val languages = repository.availableLanguages()
-        if (languages.isEmpty()) return
-
-        PopupMenu(this, anchor).apply {
-            languages.forEachIndexed { index, language ->
-                menu.add(0, index, index, language.name).apply {
-                    isCheckable = true
-                    isChecked = language.code == repository.languageCode
-                }
-            }
-
-            setOnMenuItemClickListener { item ->
-                val language = languages.getOrNull(item.itemId)
-                    ?: return@setOnMenuItemClickListener false
-
-                if (language.code != repository.languageCode) {
-                    settingsStore.setLanguage(language.code)
-                    recreate()
-                }
-                true
-            }
-            show()
-        }
-    }
-
-    private fun renderLanguageFlag() {
-        val language = repository.currentLanguage()
-        val resourceId = resources.getIdentifier(
-            "flag_${language.flag}",
-            "drawable",
-            packageName
-        )
-        languageFlag.setImageResource(
-            if (resourceId != 0) resourceId else R.drawable.ic_language
-        )
-        languageFlag.contentDescription =
-            getString(R.string.language_current, language.name)
     }
 
     private fun showFolder(path: String) {
@@ -338,15 +327,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun applyExplicitTheme() {
-        val isLight = settingsStore.getTheme() == AppTheme.LIGHT
         val background = dynamicBackgroundColor()
-        val surface = if (isLight) Color.rgb(240, 240, 240) else Color.rgb(37, 45, 54)
 
         findViewById<View>(R.id.rootLayout).setBackgroundColor(background)
-        findViewById<View>(R.id.topBar).setBackgroundColor(surface)
         findViewById<View>(R.id.contentHeader).setBackgroundColor(background)
-        findViewById<TextView>(R.id.appTitle).setTextColor(dynamicTextPrimary())
-        findViewById<TextView>(R.id.appSubtitle).setTextColor(dynamicTextSecondary())
         titleView.setTextColor(dynamicTextPrimary())
         navigationScroll.setBackgroundColor(background)
         documentView.setBackgroundColor(background)
