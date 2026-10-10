@@ -1,4 +1,4 @@
-plugins {
+﻿plugins {
     alias(libs.plugins.android.application)
 }
 
@@ -12,8 +12,8 @@ android {
         applicationId = "com.rokkystudio.yammy"
         minSdk = 24
         targetSdk = 37
-        versionCode = 13
-        versionName = "1.0.13"
+        versionCode = 14
+        versionName = "1.0.14"
     }
 
     buildTypes {

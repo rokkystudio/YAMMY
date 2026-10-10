@@ -15,4 +15,8 @@
     <color name="status_error">#FFC74A4A</color>
     <color name="title_bar_button_pressed">#FF283F4D</color>
     <color name="button_pressed">#FFEFF2F5</color>
+    <color name="button_surface">#FFF0F1F2</color>
+    <color name="button_disabled">#FFE1E2E4</color>
+    <color name="button_text_disabled">#FFC7C9CC</color>
+    <color name="border_disabled">#FFC9CCD1</color>
 </resources>
