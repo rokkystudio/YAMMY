@@ -36,8 +36,10 @@ class MainActivity : AppCompatActivity() {
     private var documentOpened = false
 
     override fun attachBaseContext(newBase: Context) {
+        val settingsStore = SettingsStore(newBase)
+        settingsStore.ensureSupportedLanguage(ContentRepository.availableLanguageTags(newBase.assets))
         val configuration = Configuration(newBase.resources.configuration)
-        SettingsStore(newBase).applyToConfiguration(configuration)
+        settingsStore.applyToConfiguration(configuration)
         super.attachBaseContext(newBase.createConfigurationContext(configuration))
     }
 
@@ -47,6 +49,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         settingsStore = SettingsStore(this)
+        val availableLanguageTags = ContentRepository.availableLanguageTags(assets)
+        settingsStore.ensureSupportedLanguage(availableLanguageTags)
         repository = ContentRepository(assets, settingsStore.getLanguage())
 
         topBar = findViewById(R.id.topBar)
@@ -57,7 +61,7 @@ class MainActivity : AppCompatActivity() {
         documentView = findViewById(R.id.documentView)
 
         applyExplicitTheme()
-        configureTopBar()
+        configureTopBar(availableLanguageTags)
 
         documentView.settings.javaScriptEnabled = false
         documentView.settings.allowFileAccess = false
@@ -89,13 +93,13 @@ class MainActivity : AppCompatActivity() {
     /**
      * Configures the shared top bar with YAMMY identity, app theme options and language options.
      */
-    private fun configureTopBar() {
+    private fun configureTopBar(languageTags: List<String>) {
         topBar.setAppInfo(
             title = getString(R.string.app_name),
             subtitle = getString(R.string.app_subtitle),
             iconResId = R.mipmap.ic_launcher
         )
-        settingsStore.bindTopBarUi(topBar)
+        settingsStore.bindTopBarUi(topBar, languageTags)
     }
 
     private fun showFolder(path: String) {

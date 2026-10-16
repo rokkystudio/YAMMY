@@ -21,6 +21,13 @@ class SettingsStore(context: Context) {
 
     fun getLanguage(): String = uiSettings.getLanguage()
 
+    fun ensureSupportedLanguage(languageTags: List<String>) {
+        val fallback = languageTags.firstOrNull() ?: DEFAULT_LANGUAGE
+        if (getLanguage() !in languageTags) {
+            uiSettings.setLanguage(fallback)
+        }
+    }
+
     fun applyToConfiguration(configuration: Configuration) {
         uiSettings.applyToConfiguration(configuration)
     }
@@ -33,8 +40,8 @@ class SettingsStore(context: Context) {
      * Связывает NeoUI-панель со стандартными настройками темы и языка.
      * NeoUI сохраняет выбор и применяет его через AppCompat.
      */
-    fun bindTopBarUi(topBar: NeoTopBarView) {
-        uiSettings.bindTopBar(topBar)
+    fun bindTopBarUi(topBar: NeoTopBarView, languageTags: List<String>) {
+        uiSettings.bindTopBar(topBar, languageTags = languageTags)
     }
 
     companion object {

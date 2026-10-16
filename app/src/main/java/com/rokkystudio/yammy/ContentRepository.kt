@@ -31,12 +31,7 @@ class ContentRepository(
         get() = "${CONTENT_ROOT}/${languageCode}"
 
     fun availableLanguages(): List<ContentLanguage> {
-        return assets.list(CONTENT_ROOT)
-            .orEmpty()
-            .filter { code ->
-                code.matches(Regex("^[a-z]{2,8}$")) &&
-                    assets.list("${CONTENT_ROOT}/${code}").orEmpty().isNotEmpty()
-            }
+        return availableLanguageTags(assets)
             .map { code ->
                 val locale = Locale.forLanguageTag(code)
                 val displayName = locale.getDisplayLanguage(locale)
@@ -190,5 +185,15 @@ class ContentRepository(
     companion object {
         private const val CONTENT_ROOT = "content"
         private const val README_FILE = "readme.md"
+
+        fun availableLanguageTags(assets: AssetManager): List<String> {
+            return assets.list(CONTENT_ROOT)
+                .orEmpty()
+                .filter { code ->
+                    code.matches(Regex("^[a-z]{2,8}$")) &&
+                        assets.list("${CONTENT_ROOT}/${code}").orEmpty().isNotEmpty()
+                }
+                .sorted()
+        }
     }
 }
