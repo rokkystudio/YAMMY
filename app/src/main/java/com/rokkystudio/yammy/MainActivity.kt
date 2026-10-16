@@ -95,9 +95,7 @@ class MainActivity : AppCompatActivity() {
             subtitle = getString(R.string.app_subtitle),
             iconResId = R.mipmap.ic_launcher
         )
-        settingsStore.bindTopBarUi(topBar) {
-            recreate()
-        }
+        settingsStore.bindTopBarUi(topBar)
     }
 
     private fun showFolder(path: String) {

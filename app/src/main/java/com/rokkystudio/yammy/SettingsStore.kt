@@ -29,8 +29,12 @@ class SettingsStore(context: Context) {
         uiSettings.applyAppCompatNightMode()
     }
 
-    fun bindTopBarUi(topBar: NeoTopBarView, onChanged: () -> Unit) {
-        uiSettings.bindTopBar(topBar, onChanged = onChanged)
+    /**
+     * Связывает NeoUI-панель со стандартными настройками темы и языка.
+     * NeoUI сохраняет выбор и применяет его через AppCompat.
+     */
+    fun bindTopBarUi(topBar: NeoTopBarView) {
+        uiSettings.bindTopBar(topBar)
     }
 
     companion object {
