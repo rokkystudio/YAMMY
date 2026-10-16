@@ -7,7 +7,7 @@
     android:orientation="vertical"
     android:background="@color/background">
 
-    <com.rokkystudio.sharedapp.neoui.NeoTopBarView
+    <badfox.logic.neoui.NeoTopBarView
         android:id="@+id/topBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />

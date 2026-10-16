@@ -16,7 +16,7 @@ import android.widget.ScrollView
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
-import com.rokkystudio.sharedapp.neoui.NeoTopBarView
+import badfox.logic.neoui.NeoTopBarView
 
 /**
  * Displays the localized YAMMY content tree, renders Markdown articles and routes shared NeoUI theme and language controls.
